@@ -8,10 +8,13 @@ use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use App\Services\Auth\AuthServiceInterface;
+use Illuminate\Http\JsonResponse;
+
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request)
+    /*public function register(RegisterRequest $request)
     {
         $data = $request->validated();
 
@@ -55,5 +58,27 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Çıkış yapıldı']);
+    }*/
+
+    
+    public function __construct(
+        private AuthServiceInterface $authService
+    ) {}
+
+    public function login(Request $request): JsonResponse
+    {
+        $data = $request->only('email', 'password');
+        return $this->authService->login($data);
+    }
+
+    public function register(Request $request): JsonResponse
+    {
+        $data = $request->only('name', 'email', 'password');
+        return $this->authService->register($data);
+    }
+
+    public function logout(Request $request): JsonResponse
+    {
+        return $this->authService->logout();
     }
 }

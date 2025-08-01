@@ -19,6 +19,11 @@ use App\Services\OrderItem\OrderItemServiceInterface;
 use App\Repositories\OrderItem\OrderItemRepository;
 use App\Repositories\OrderItem\OrderItemRepositoryInterface;
 
+use App\Services\Auth\AuthService;
+use App\Services\Auth\AuthServiceInterface;
+use App\Repositories\Auth\AuthRepository;
+use App\Repositories\Auth\AuthRepositoryInterface;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -34,6 +39,9 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(OrderItemServiceInterface::class, OrderItemService::class);
         $this->app->bind(OrderItemRepositoryInterface::class, OrderItemRepository::class);
+
+        $this->app->bind(AuthServiceInterface::class, AuthService::class);
+        $this->app->bind(AuthRepositoryInterface::class, AuthRepository::class);
 
     }
 

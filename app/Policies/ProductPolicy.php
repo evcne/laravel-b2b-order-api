@@ -13,7 +13,7 @@ class ProductPolicy
      */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'customer']);
+        return true;//in_array($user->role, ['admin', 'customer']);
     }
 
     /**
@@ -21,7 +21,7 @@ class ProductPolicy
      */
     public function view(User $user, Product $product): bool
     {
-        //
+        return true;
     }
 
     /**

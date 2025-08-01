@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
     ]);
 });
 
-Route::middleware(['auth:sanctum', 'role:admin, customer'])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('orders', OrderController::class);
     Route::delete('/orders/{order}/items/{item}', [OrderItemController::class, 'destroy']);
     Route::post('/orders/{order}/items', [OrderItemController::class, 'store']);
