@@ -13,14 +13,11 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function find($id)
     {
-        return Product::findOrFail($id);
+        return Product::find($id);
     }
 
     public function create(array $data)
     {
-        //$data = $request->validated();
-        //$data['create_user_id'] = auth()->id();
-
         return Product::create($data);
     }
 

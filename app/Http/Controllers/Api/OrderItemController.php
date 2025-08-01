@@ -12,6 +12,7 @@ use App\Services\OrderItemService;
 use App\DTOs\Order\OrderItemDTO;
 use Illuminate\Http\Request;
 use App\Http\Resources\OrderItemResource;
+use App\Helpers\Helper;
 
 
 class OrderItemController extends Controller
@@ -22,26 +23,38 @@ class OrderItemController extends Controller
 
     public function store(OrderItemStoreRequest $request, Order $order): JsonResponse
     {
-        $dto = new OrderItemDTO($request->validated());
-        $item = $this->orderItemService->store($dto, $order);
+        try{
+            $dto = new OrderItemDTO($request->validated());
+            $item = $this->orderItemService->store($dto, $order);
 
-        $this->authorize('create', [OrderItem::class, $order]);
+            $this->authorize('create', [OrderItem::class, $order]);
 
-        return response()->json([
-            'message' => 'Sipariş kalemi eklendi. Stok kontrolü yapıldı fakat, Total price değişmesi, statusu e döre ekleme yapılabilmesi veya yapılamamsı durumları geliştirlmeli.',
-            'data' =>new OrderItemResource($item)
-        ], 201);
+            //TODO: Stok kontrolü yapıldı fakat, Total price değişmesi, statusu e döre ekleme yapılabilmesi veya yapılamamsı durumları geliştirlmeli 
+            return response()->json(
+                Helper::gelfOutput(new OrderItemResource($item), true, Helper::CREATE_SUCCESS_TEXT, Helper::C000)
+            );
+
+        } catch (\Exception $e) {
+            return response()->json(
+                Helper::gelfOutput(null, false, Helper::CREATE_FAILED_TEXT, Helper::C001)
+            );
+        }
     }
 
     public function destroy(Order $order, OrderItem $item): JsonResponse
     {
         if ($item->order_id !== $order->id) {
-            return response()->json(['message' => 'Sipariş kalemi bu siparişe ait değil.'], 403);
+            return response()->json(
+                Helper::gelfOutput(null, false, Helper::DELETE_FAILED_TEXT, Helper::D002)
+            );
         }
 
         $this->authorize('delete', $item);
         $item->delete();
 
-        return response()->json(['message' => 'Sipariş kalemi başarıyla silindi.']);
+        return response()->json(
+            Helper::gelfOutput(null, true, Helper::DELETE_SUCCESS_TEXT, Helper::D000)
+        );    
+    
     }
 }

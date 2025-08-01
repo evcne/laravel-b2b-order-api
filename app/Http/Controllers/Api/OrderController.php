@@ -11,7 +11,7 @@ use App\DTOs\Order\OrderStoreDTO;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Http\Resources\OrderResource;
-
+use App\Helpers\Helper;
 
 
 class OrderController extends Controller
@@ -20,46 +20,55 @@ class OrderController extends Controller
 
     public function index(): JsonResponse
     {
-        //$orders = $this->orderService->getAll();
-        //return response()->json(['data' => $orders]);
-
         $this->authorize('viewAny', Order::class);
 
-        if (auth()->user()->role === 'admin') {
+        if (auth()->user()->role === Helper::USER_ROLE_ADMIN) {
             $orders = $this->orderService->getAll();
         } else {
             $orders = $this->orderService->getByUserId(auth()->id());
         }
 
-        return response()->json(['message' => 'Siparişler başarıyla getirildi.',
-        'data' => OrderResource::collection($orders)]);
+        return response()->json(
+            Helper::gelfOutput(OrderResource::collection($orders), true, Helper::READ_SUCCESS_TEXT, Helper::R000)
+        );
 
     }
 
     public function store(OrderStoreRequest $request): JsonResponse
     {    
 
-        $dto = new OrderStoreDTO($request->validated());
+        try {
+            $dto = new OrderStoreDTO($request->validated());
 
-        $order = $this->orderService->create($dto);
+            $order = $this->orderService->create($dto);
 
-        return response()->json([
-            'message' => 'Sipariş oluşturuldu. Stok kontrolü yapıldı. Müşteri yeni sipariş oluşturmalı denildiği için sadece ibaresi olmadığı için herkes yapabiliyor.',
-            'data' => new OrderResource($order),
-        ], 201);
+            return response()->json(
+                Helper::gelfOutput(new OrderResource($order), true, Helper::CREATE_SUCCESS_TEXT, Helper::C000),
+                201
+            );
+        } catch (\Exception $e) {
+            return response()->json(
+                Helper::gelfOutput(null, false, Helper::CREATE_FAILED_TEXT, Helper::C001)
+            );
+        }
+
+
     }
 
     public function show(int $id): JsonResponse
     {
         $order = $this->orderService->findById($id);
         if (!$order) {
-            return response()->json(['message' => 'Sipariş bulunamadı.'], 404);
+            return response()->json(
+                Helper::gelfOutput(null, false, Helper::READ_FAILED_TEXT, Helper::R001)
+            );
         }
 
         $this->authorize('view', $order);
 
-        return response()->json(['message' => 'Sipariş başarıyla getirildi.',
-        'data' => new OrderResource($order)]);
+        return response()->json(   
+            Helper::gelfOutput(new OrderResource($order), true, Helper::READ_SUCCESS_TEXT, Helper::R000)
+        );
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -76,11 +85,14 @@ class OrderController extends Controller
         $this->authorize('update', $order);
 
         if (!$order) {
-            return response()->json(['message' => 'Sipariş bulunamadı.'], 404);
+            return response()->json(
+                Helper::gelfOutput(null, false, Helper::UPDATE_FAILED_TEXT, Helper::U002)
+            );
         }
-        return response()->json(['message' => 'Sipariş başarı ile güncellendi.',
-         'data' => new OrderResource($order)
-        ]);
+
+        return response()->json(
+            Helper::gelfOutput(new OrderResource($updated), true, Helper::UPDATE_SUCCESS_TEXT, Helper::U000)
+        );
     } 
 
     public function destroy(int $id): JsonResponse
@@ -90,13 +102,17 @@ class OrderController extends Controller
         $order = $this->orderService->findById($id);
 
         if (!$order) {
-            return response()->json(['message' => 'Silmek istediğiniz sipariş bulunamadı'], 404);
+            return response()->json(
+                Helper::gelfOutput(null, false, Helper::DELETE_FAILED_TEXT, Helper::D002)
+            );
         }
 
         $this->authorize('delete', $order);
 
         $deleted = $this->orderService->delete($id);
 
-        return response()->json(['message' => 'Sipariş başarı ile silindi.'], 200);
-        }
+        return response()->json(
+            Helper::gelfOutput(null, true, Helper::DELETE_SUCCESS_TEXT, Helper::D000)
+        );    
+    }
 }

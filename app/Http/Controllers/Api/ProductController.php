@@ -9,25 +9,29 @@ use App\Services\Product\ProductServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Http\Resources\ProductResource;
+use App\Helpers\Helper;
 
 
 
 class ProductController extends Controller
 {
     protected ProductServiceInterface $productService;
+    protected Helper $helper;
 
-    public function __construct(ProductServiceInterface $productService)
+    public function __construct(ProductServiceInterface $productService, Helper $helper)
     {
         $this->productService = $productService;
+        $this->helper = $helper;
     }
 
     public function index(): JsonResponse
     {
         $products = $this->productService->all();
-        return response()->json([
-        'message' => 'Ürünler başarıyla getirildi.',
-        'data' => ProductResource::collection($products)
-    ]);
+        
+        return response()->json(
+            Helper::gelfOutput(ProductResource::collection($products), true, Helper::READ_SUCCESS_TEXT, Helper::R000)
+        );
+
     }
 
     public function show($id): JsonResponse
@@ -35,15 +39,14 @@ class ProductController extends Controller
         $product = $this->productService->find($id);
 
         if (!$product) {
-            return response()->json([
-                'message' => 'Ürün bulunamadı.'
-            ], 404);
+            return response()->json(
+                Helper::gelfOutput(null, false, Helper::READ_FAILED_TEXT, Helper::R002)
+            );
         }
 
-        return response()->json([
-            'message' => 'Ürün başarıyla getirildi.',
-            'data' => new ProductResource($product)
-        ]);
+        return response()->json(
+            Helper::gelfOutput(new ProductResource($product), true, Helper::READ_SUCCESS_TEXT, Helper::R000)
+        );
     }
 
     public function store(ProductStoreRequest $request): JsonResponse
@@ -54,15 +57,15 @@ class ProductController extends Controller
 
             $this->authorize('create', $product);
 
-            return response()->json([
-                'message' => 'Ürün başarıyla eklendi.',
-                'data' => new ProductResource($product)
-            ], 201);
+            return response()->json(
+                Helper::gelfOutput(new ProductResource($product), true, Helper::CREATE_SUCCESS_TEXT, Helper::C000)
+            );
+
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Bir hata oluştu.',
-                'error' => $e->getMessage()
-            ], 500);
+        
+            return response()->json(
+                Helper::gelfOutput($e->getMessage(), true, Helper::CREATE_FAILED_TEXT, Helper::C001)
+            );
         }
     }
 
@@ -72,13 +75,14 @@ class ProductController extends Controller
         $this->authorize('update', $updated);
 
         if (!$updated) {
-            return response()->json(['message' => 'Ürün bulunamadı.'], 404);
+            return response()->json(
+                Helper::gelfOutput(null, false, Helper::UPDATE_FAILED_TEXT, Helper::U002)
+            );
         }
 
-        return response()->json([
-            'message' => 'Ürün başarıyla güncellendi.',
-            'data' => new ProductResource($updated)
-        ]);
+        return response()->json(
+            Helper::gelfOutput(new ProductResource($updated), true, Helper::UPDATE_SUCCESS_TEXT, Helper::U000)
+        );
     }
 
     public function destroy($id): JsonResponse
@@ -87,13 +91,17 @@ class ProductController extends Controller
         $product = $this->productService->find($id);
 
         if (!$product) {
-            return response()->json(['message' => 'Ürün bulunamadı.'], 404);
+            return response()->json(
+                Helper::gelfOutput(null, false, Helper::DELETE_FAILED_TEXT, Helper::D002)
+            );
         }
 
         $this->authorize('delete', $product); 
 
         $deleted = $this->productService->delete($id); 
 
-        return response()->json(['message' => 'Ürün başarıyla silindi.']);
+        return response()->json(
+            Helper::gelfOutput(null, true, Helper::DELETE_SUCCESS_TEXT, Helper::D000)
+        );
     }
 }
