@@ -92,12 +92,12 @@ Sipariş oluşturulurken birden fazla ürün içerecek şekilde veri gönderilme
    
 4. **Container'a Bağlanın ve Composer Kurulumlarını Yapın:**
    docker exec -it app bash
-    composer install
-    php artisan key:generate
-    php artisan migrate --seed
+   composer install
+   php artisan key:generate
+   php artisan migrate --seed
    
 5. **Postman collection kullanarak çalıştırın:**
-
+Docker kısmında hata alırsanız veya çalışmak istemezseniz, php artisan serve ile localde de çalıştırabilirsiniz.
 
 ### Test Kullanıcıları 
 - admin_test@gmail.com
