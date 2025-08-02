@@ -59,7 +59,7 @@ class OrderService implements OrderServiceInterface
         try {
             
             $order = $this->orderRepository->create([
-                'user_id' => $dto->user_id,
+                'user_id' => auth()->user()->id,
                 'status' => $dto->status,
                 'total_price' => $data['total_price'],
             ]);

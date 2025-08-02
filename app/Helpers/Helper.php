@@ -25,6 +25,7 @@ class Helper
     const AUTH_LOGOUT_FAILED_TEXT = "Oturum kapatma işlemi başarısız.";
 
     const USER_DOES_NOT_EXIST = "Kayıtlı kullanıcı bulunamadı.";
+    const USER_DOES_NOT_AUTHORIZED = "Kullanıcı yetkisi bulunamadı.";
 
     public const USER_ROLE_CUSTOMER = 'customer';
     public const USER_ROLE_ADMIN = 'admin';

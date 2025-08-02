@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Http\Resources\ProductResource;
 use App\Helpers\Helper;
-
+use Illuminate\Support\Facades\Cache;
 
 
 class ProductController extends Controller
@@ -26,7 +26,15 @@ class ProductController extends Controller
 
     public function index(): JsonResponse
     {
+        //$cacheKey = 'product-list';
+        //$ttlMinutes = 2;
+
+        /*$products = Cache::remember($cacheKey, $ttlMinutes, function () {
+            return $this->productService->all();
+        });*/
+
         $products = $this->productService->all();
+        
         
         return response()->json(
             Helper::gelfOutput(ProductResource::collection($products), true, Helper::READ_SUCCESS_TEXT, Helper::R000)
@@ -52,6 +60,12 @@ class ProductController extends Controller
     public function store(ProductStoreRequest $request): JsonResponse
     {
         try {
+
+            if(auth()->user()->role !== Helper::USER_ROLE_ADMIN) {
+                return response()->json(
+                    Helper::gelfOutput(null, true, Helper::USER_DOES_NOT_AUTHORIZED, Helper::C001)
+                );
+            }
             
             $product = $this->productService->create($request->validated());
 
@@ -71,6 +85,12 @@ class ProductController extends Controller
 
     public function update(ProductUpdateRequest $request, $id): JsonResponse
     {
+        if(auth()->user()->role !== Helper::USER_ROLE_ADMIN) {
+            return response()->json(
+                Helper::gelfOutput(null, true, Helper::USER_DOES_NOT_AUTHORIZED, Helper::C001)
+            );
+        }
+        
         $updated = $this->productService->update($id, $request->validated());
         $this->authorize('update', $updated);
 
@@ -87,6 +107,12 @@ class ProductController extends Controller
 
     public function destroy($id): JsonResponse
     {
+
+        if(auth()->user()->role !== Helper::USER_ROLE_ADMIN) {
+            return response()->json(
+                Helper::gelfOutput(null, true, Helper::USER_DOES_NOT_AUTHORIZED, Helper::C001)
+            );
+        }
 
         $product = $this->productService->find($id);
 

@@ -14,7 +14,7 @@ class OrderStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
+            'user_id' => 'exists:users,id',
             'status' => 'required|string|in:pending, approved, shipped, cancelled',
             //'total_price' => 'required|numeric|min:0',
             'order_items' => 'required|array|min:1',
@@ -27,7 +27,6 @@ class OrderStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'user_id.required' => 'Kullanıcı ID alanı zorunludur.',
             'user_id.exists' => 'Belirtilen kullanıcı sistemde bulunamadı.',
             'status.required' => 'Sipariş durumu alanı zorunludur.',
             'status.string' => 'Sipariş durumu metin tipinde olmalıdır.',
